@@ -11,3 +11,5 @@ App simples de gestão de biblioteca: cadastro de livros, lista de cadastrados, 
     python app.py
 
 Acesse http://127.0.0.1:5000
+
+Mudanças estão na branch develop.
