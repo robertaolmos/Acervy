@@ -1,59 +1,197 @@
-var B='/api';
-var aba='todos';
+const API = "/api";
+const ANO_MINIMO_LIVRO = 1000;
 
-function g(u,cb){fetch(B+u).then(r=>r.json()).then(cb)}
-function p(u,d,cb){fetch(B+u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()).then(cb)}
+let abaAtual = "todos";
 
-function cad(){
-  var t=document.getElementById('t').value, a=document.getElementById("a").value, y=document.getElementById('y').value;
-  if(t.length<3){alert('Titulo muito curto');return}
-  if(a==''){alert('Informe o autor');return}
-  if(y<1000||y>2026){alert('Ano invalido');return}
-  p('/livros',{titulo:t,autor:a,ano:y},function(r){
-    alert(r.msg)
-    if(r.ok==1){
-      document.getElementById('t').value='';document.getElementById('a').value='';document.getElementById('y').value='';
-      show(aba)
+
+function buscar(url, callback) {
+    fetch(API + url)
+        .then(resposta => resposta.json())
+        .then(callback);
+}
+
+
+function enviar(url, dados, callback) {
+    fetch(API + url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dados)
+    })
+        .then(resposta => resposta.json())
+        .then(callback);
+}
+
+
+function cadastrarLivro() {
+    const titulo = document.getElementById("t").value;
+    const autor = document.getElementById("a").value;
+    const ano = document.getElementById("y").value;
+    const anoAtual = new Date().getFullYear();
+
+    if (titulo.length < 3) {
+        alert("Título muito curto");
+        return;
     }
-  })
-}
 
-function show(t){
-  aba=t;
-  g('/lista/'+t,function(l){
-    var h='';
-    if(t=='todos'||t=='disp'){
-      h+='<tr><th>ID</th><th>Titulo</th><th>Autor</th><th>Ano</th><th>Status</th><th></th></tr>';
-      for(var i=0;i<l.length;i++){
-        h+='<tr><td>'+l[i].id+'</td><td>'+l[i].titulo+'</td><td>'+l[i].autor+'</td><td>'+l[i].ano+'</td><td>'+l[i].status+'</td>';
-        if(l[i].status=='Disponivel') h+='<td><button onclick="emp('+l[i].id+')">Emprestar</button></td>'; else h+='<td></td>';
-        h+='</tr>';
-      }
-    }else{
-      h+='<tr><th>Livro</th><th>Leitor</th><th>Emprestimo</th><th>Previsto</th><th>Devolvido</th><th>Multa</th><th></th></tr>';
-      for(var i=0;i<l.length;i++){
-        var c=''; if(l[i].atrasado) c=' class="atrasado"';
-        h+='<tr'+c+'><td>'+l[i].titulo+'</td><td>'+l[i].usuario+'</td><td>'+l[i].data_emprestimo+'</td><td>'+l[i].data_prevista+'</td><td>'+(l[i].data_devolucao?l[i].data_devolucao:'-')+'</td><td>'+(l[i].multa?'R$ '+l[i].multa:'-')+'</td>';
-        if(!l[i].data_devolucao) h+='<td><button onclick="dev('+l[i].id+')">Devolver</button></td>'; else h+='<td></td>';
-        h+='</tr>';
-      }
+    if (autor === "") {
+        alert("Informe o autor");
+        return;
     }
-    if(l.length==0) h='<tr><td>Nenhum registro.</td></tr>';
-    document.getElementById('tb').innerHTML=h;
-  })
+
+    if (ano < ANO_MINIMO_LIVRO || ano > anoAtual) {
+        alert("Ano inválido");
+        return;
+    }
+
+    enviar("/livros", {
+        titulo: titulo,
+        autor: autor,
+        ano: ano
+    }, function (resposta) {
+        alert(resposta.msg);
+
+        if (resposta.ok === 1) {
+            document.getElementById("t").value = "";
+            document.getElementById("a").value = "";
+            document.getElementById("y").value = "";
+            mostrarLista(abaAtual);
+        }
+    });
 }
 
-function emp(id){
-  var u=prompt('Nome do leitor:');
-  if(u){
-    p('/emprestar',{id:id,user:u},function(r){alert(r.msg);show(aba)})
-  }
+
+function mostrarLista(tipoLista) {
+    abaAtual = tipoLista;
+
+    buscar("/lista/" + tipoLista, function (lista) {
+        if (tipoLista === "todos" || tipoLista === "disp") {
+            mostrarLivros(lista);
+        } else {
+            mostrarEmprestimos(lista);
+        }
+    });
 }
 
-function dev(id){
-  if(confirm('Confirmar devolucao?')){
-    p('/devolver',{id:id},function(r){alert(r.msg);show(aba)})
-  }
+
+function mostrarLivros(livros) {
+    let tabela = "<tr>";
+    tabela += "<th>ID</th>";
+    tabela += "<th>Título</th>";
+    tabela += "<th>Autor</th>";
+    tabela += "<th>Ano</th>";
+    tabela += "<th>Status</th>";
+    tabela += "<th></th>";
+    tabela += "</tr>";
+
+    for (let i = 0; i < livros.length; i++) {
+        const livro = livros[i];
+        let botao = "";
+
+        if (livro.status === "Disponível") {
+            botao = "<button onclick=\"emprestarLivro(";
+            botao += livro.id + ")\">Emprestar</button>";
+        }
+
+        tabela += "<tr>";
+        tabela += "<td>" + livro.id + "</td>";
+        tabela += "<td>" + livro.titulo + "</td>";
+        tabela += "<td>" + livro.autor + "</td>";
+        tabela += "<td>" + livro.ano + "</td>";
+        tabela += "<td>" + livro.status + "</td>";
+        tabela += "<td>" + botao + "</td>";
+        tabela += "</tr>";
+    }
+
+    if (livros.length === 0) {
+        tabela = "<tr><td>Nenhum registro.</td></tr>";
+    }
+
+    document.getElementById("tb").innerHTML = tabela;
 }
 
-show('todos');
+
+function mostrarEmprestimos(emprestimos) {
+    let tabela = "<tr>";
+    tabela += "<th>Livro</th>";
+    tabela += "<th>Leitor</th>";
+    tabela += "<th>Empréstimo</th>";
+    tabela += "<th>Previsto</th>";
+    tabela += "<th>Devolvido</th>";
+    tabela += "<th>Multa</th>";
+    tabela += "<th></th>";
+    tabela += "</tr>";
+
+    for (let i = 0; i < emprestimos.length; i++) {
+        const emprestimo = emprestimos[i];
+        const classeAtrasado = emprestimo.atrasado
+            ? " class=\"atrasado\""
+            : "";
+
+        const dataDevolucao = emprestimo.data_devolucao
+            ? emprestimo.data_devolucao
+            : "-";
+
+        const multa = emprestimo.multa
+            ? "R$ " + emprestimo.multa
+            : "-";
+
+        let botao = "";
+
+        if (!emprestimo.data_devolucao) {
+            botao = "<button onclick=\"devolverLivro(";
+            botao += emprestimo.id + ")\">Devolver</button>";
+        }
+
+        tabela += "<tr" + classeAtrasado + ">";
+        tabela += "<td>" + emprestimo.titulo + "</td>";
+        tabela += "<td>" + emprestimo.usuario + "</td>";
+        tabela += "<td>" + emprestimo.data_emprestimo + "</td>";
+        tabela += "<td>" + emprestimo.data_prevista + "</td>";
+        tabela += "<td>" + dataDevolucao + "</td>";
+        tabela += "<td>" + multa + "</td>";
+        tabela += "<td>" + botao + "</td>";
+        tabela += "</tr>";
+    }
+
+    if (emprestimos.length === 0) {
+        tabela = "<tr><td>Nenhum registro.</td></tr>";
+    }
+
+    document.getElementById("tb").innerHTML = tabela;
+}
+
+
+function emprestarLivro(livroId) {
+    const usuario = prompt("Nome do leitor:");
+
+    if (!usuario) {
+        return;
+    }
+
+    enviar("/emprestar", {
+        id: livroId,
+        user: usuario
+    }, function (resposta) {
+        alert(resposta.msg);
+        mostrarLista(abaAtual);
+    });
+}
+
+
+function devolverLivro(emprestimoId) {
+    if (!confirm("Confirmar devolução?")) {
+        return;
+    }
+
+    enviar("/devolver", {
+        id: emprestimoId
+    }, function (resposta) {
+        alert(resposta.msg);
+        mostrarLista(abaAtual);
+    });
+}
+
+
+mostrarLista("todos");

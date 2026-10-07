@@ -1,41 +1,97 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Biblioteca</title>
-<style>
-body{font-family:Arial;margin:20px;background:#f4f4f4}
-h1{color:#333}
-form,table{background:#fff;padding:10px;margin-bottom:15px}
-input{padding:5px;margin-right:5px}
-button{padding:5px 10px;cursor:pointer}
-table{width:100%;border-collapse:collapse}
-td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left}
-.atrasado{color:red;font-weight:bold}
-.abas button{margin-right:4px}
-</style>
+    <meta charset="UTF-8">
+    <title>Biblioteca</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form,
+        table {
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            border-bottom: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .atrasado {
+            color: red;
+            font-weight: bold;
+        }
+
+        .abas button {
+            margin-right: 4px;
+        }
+    </style>
 </head>
+
 <body>
-<h1>Biblioteca</h1>
 
-<form onsubmit="cad();return false;">
-  <b>Cadastrar livro:</b>
-  <input id="t" placeholder="Titulo">
-  <input id="a" placeholder="Autor">
-  <input id="y" placeholder="Ano" type="number">
-  <button>Cadastrar</button>
-</form>
+    <h1>Biblioteca</h1>
 
-<div class="abas">
-  <button onclick="show('todos')">Cadastrados</button>
-  <button onclick="show('disp')">Disponiveis</button>
-  <button onclick="show('emp')">Emprestados</button>
-  <button onclick="show('pend')">Pendentes de devolucao</button>
-  <button onclick="show('dev')">Devolvidos</button>
-</div>
-<br>
-<table id="tb"></table>
+    <form onsubmit="cadastrarLivro(); return false;">
+        <b>Cadastrar livro:</b>
 
-<script src="script.js"></script>
+        <input id="t" placeholder="Título">
+        <input id="a" placeholder="Autor">
+        <input id="y" placeholder="Ano" type="number">
+
+        <button>Cadastrar</button>
+    </form>
+
+    <div class="abas">
+        <button onclick="mostrarLista('todos')">
+            Cadastrados
+        </button>
+
+        <button onclick="mostrarLista('disp')">
+            Disponíveis
+        </button>
+
+        <button onclick="mostrarLista('pend')">
+            Pendentes de devolução
+        </button>
+
+        <button onclick="mostrarLista('dev')">
+            Devolvidos
+        </button>
+    </div>
+
+    <br>
+
+    <table id="tb"></table>
+
+    <script src="script.js"></script>
+
 </body>
 </html>
